@@ -1,0 +1,44 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// Tabela para armazenar documentos e embeddings por agente
+model AgentDocument {
+  id        String   @id @default(uuid())
+  agentId   String   @map("agent_id") // professor_pitagoras, dra_clarice_lispector, etc.
+  content   String   @db.Text // Chunk de texto
+  metadata  Json     @default("{}") // { source, topic, difficulty, etc. }
+  embedding Unsupported("vector(1536)")? // Vetor de embedding (1536 dimensões para text-embedding-3-small)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([agentId])
+  @@map("agent_documents")
+}
+
+// Tabela para logs de queries RAG (auditoria)
+model QueryLog {
+  id                String   @id @default(uuid())
+  agentId           String   @map("agent_id")
+  userId            String?  @map("user_id")
+  question          String   @db.Text
+  answer            String   @db.Text
+  retrievedDocIds   Json     @map("retrieved_doc_ids") // Array de IDs dos documentos recuperados
+  retrievalScores   Json     @map("retrieval_scores") // Array de scores de similaridade
+  responseTimeMs    Int      @map("response_time_ms")
+  modelUsed         String   @map("model_used")
+  tokensUsed        Int?     @map("tokens_used")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@index([agentId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("query_logs")
+}
