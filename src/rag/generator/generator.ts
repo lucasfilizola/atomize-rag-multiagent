@@ -13,7 +13,7 @@ const anthropic = new Anthropic({
 /**
  * Modelo Claude padrão
  */
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-3-5-20241022';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5';
 
 /**
  * Interface para o resultado da geração

@@ -12,6 +12,7 @@
     "ingest": "ts-node --project tsconfig.node.json src/rag/ingest/ingest.ts",
     "ingest:sample": "ts-node --project tsconfig.node.json src/rag/ingest/ingestSampleData.ts",
     "ingest:files": "ts-node --project tsconfig.node.json scripts/ingestFromFiles.ts",
+    "ingest:simple": "ts-node --project tsconfig.node.json scripts/ingestSimple.ts",
     "test:query": "ts-node --project tsconfig.node.json scripts/testQuery.ts"
   },
   "dependencies": {

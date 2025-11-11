@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { getAgentConfig, isValidAgentId } from '@/agents/config';
-import { retrieveDocuments } from '@/rag/retriever/retriever';
+import { retrieveDocumentsSimple } from '@/rag/retriever/retriever-simple';
 import { generateAnswer } from '@/rag/generator/generator';
 import { logQuery } from '@/rag/logger/logger';
 import { RAGQuery, RAGResult } from '@/types/rag.types';
@@ -57,7 +57,7 @@ export default async function handler(
 
     // 3. RETRIEVAL - Buscar documentos relevantes
     const topK = query.maxDocuments || 5;
-    const retrievedDocs = await retrieveDocuments(
+    const retrievedDocs = await retrieveDocumentsSimple(
       query.agentId,
       query.message,
       topK
