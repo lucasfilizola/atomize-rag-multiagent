@@ -9,13 +9,13 @@ datasource db {
 
 // Tabela para armazenar documentos e embeddings por agente
 model AgentDocument {
-  id        String   @id @default(uuid())
-  agentId   String   @map("agent_id") // professor_pitagoras, dra_clarice_lispector, etc.
-  content   String   @db.Text // Chunk de texto
-  metadata  Json     @default("{}") // { source, topic, difficulty, etc. }
-  embedding String?  @db.Text // Temporariamente como texto até instalar pgvector
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String                     @id @default(uuid())
+  agentId   String                     @map("agent_id") // professor_pitagoras, dra_clarice_lispector, etc.
+  content   String                     @db.Text // Chunk de texto
+  metadata  Json                       @default("{}") // { source, topic, difficulty, etc. }
+  embedding Unsupported("vector(1536)")? // Embedding vetorial OpenAI (1536 dimensões)
+  createdAt DateTime                   @default(now()) @map("created_at")
+  updatedAt DateTime                   @updatedAt @map("updated_at")
 
   @@index([agentId])
   @@map("agent_documents")

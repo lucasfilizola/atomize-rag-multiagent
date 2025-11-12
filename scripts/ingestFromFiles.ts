@@ -197,18 +197,21 @@ async function ingestFromFiles() {
       const chunk = allChunks[i];
       const embedding = embeddings[i];
 
-      await prisma.$executeRaw`
+      // Converter embedding para string no formato pgvector
+      const embeddingString = `[${embedding.join(',')}]`;
+
+      await prisma.$executeRawUnsafe(`
         INSERT INTO agent_documents (id, agent_id, content, metadata, embedding, created_at, updated_at)
         VALUES (
           gen_random_uuid(),
-          ${agentId},
-          ${chunk.content},
-          ${JSON.stringify(chunk.metadata)}::jsonb,
-          ${`[${embedding.join(',')}]`}::vector,
+          $1,
+          $2,
+          $3::jsonb,
+          $4::vector,
           NOW(),
           NOW()
         )
-      `;
+      `, agentId, chunk.content, JSON.stringify(chunk.metadata), embeddingString);
     }
 
     console.log(`   ✅ ${allChunks.length} documentos inseridos!`);

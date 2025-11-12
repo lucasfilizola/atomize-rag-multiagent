@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { getAgentConfig, isValidAgentId } from '@/agents/config';
-import { retrieveDocumentsSimple } from '@/rag/retriever/retriever-simple';
+import { retrieveDocuments } from '@/rag/retriever/retriever';
 import { generateAnswer } from '@/rag/generator/generator';
 import { logQuery } from '@/rag/logger/logger';
 import { RAGQuery, RAGResult } from '@/types/rag.types';
@@ -55,9 +55,9 @@ export default async function handler(
     console.log(`\n🎯 Nova query para: ${agentConfig.name}`);
     console.log(`   Pergunta: "${query.message}"`);
 
-    // 3. RETRIEVAL - Buscar documentos relevantes
+    // 3. RETRIEVAL - Buscar documentos relevantes usando busca vetorial
     const topK = query.maxDocuments || 5;
-    const retrievedDocs = await retrieveDocumentsSimple(
+    const retrievedDocs = await retrieveDocuments(
       query.agentId,
       query.message,
       topK

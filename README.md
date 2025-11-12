@@ -316,13 +316,59 @@ Todas as queries são registradas com:
 - **Scores de similaridade** (prova do retrieval)
 - **Tempo de resposta** (ms)
 - **Tokens utilizados**
-- **Modelo usado** (Claude Sonnet 3.5)
+- **Modelo usado** (Claude Haiku 4.5)
 
 Acesse os logs:
 
 ```bash
 npm run prisma:studio
 # Navegar para tabela query_logs
+```
+
+## 🔌 Integração com Outras Plataformas
+
+### Como consumir a API:
+
+```bash
+POST /api/agents/query
+Content-Type: application/json
+
+{
+  "agentId": "professor_pitagoras",
+  "message": "O que é uma função quadrática?",
+  "userId": "user123",
+  "maxDocuments": 5
+}
+```
+
+### SDKs Disponíveis:
+
+- **TypeScript/JavaScript**: `sdk/atomize-rag-client.ts`
+- **Python, PHP, Ruby**: Ver `API_INTEGRATION_GUIDE.md`
+- **Demo HTML**: `demo/index.html`
+
+**📚 Documentação completa:** [COMO_CONSUMIR_API.md](./COMO_CONSUMIR_API.md)
+
+### Exemplos rápidos:
+
+```typescript
+// TypeScript/JavaScript
+import AtomizeRAGClient from './sdk/atomize-rag-client';
+
+const client = new AtomizeRAGClient('http://localhost:3000');
+const resposta = await client.askPitagoras('O que é uma função quadrática?');
+console.log(resposta.answer);
+```
+
+```python
+# Python
+import requests
+
+response = requests.post('http://localhost:3000/api/agents/query', json={
+    'agentId': 'professor_pitagoras',
+    'message': 'O que é uma função quadrática?'
+})
+print(response.json()['answer'])
 ```
 
 ## 🚀 Próximos Passos
@@ -345,15 +391,24 @@ Para evolução da POC:
    - Fine-tuning de embeddings
 
 4. **Produção**:
-   - Deploy serverless (AWS Lambda)
-   - Autenticação de usuários
-   - Rate limiting
+   - Deploy serverless (Vercel + Neon)
+   - Autenticação de usuários (API Keys)
+   - Rate limiting (10 req/min)
    - Cache de embeddings
 
-## 📝 Licença
+## � Documentação Adicional
+
+- [Como Consumir a API](./COMO_CONSUMIR_API.md)
+- [Guia de Integração](./API_INTEGRATION_GUIDE.md)
+- [SDK TypeScript](./sdk/README.md)
+- [Exemplos de Código](./sdk/examples.ts)
+- [Demo Interativa](./demo/index.html)
+
+## �📝 Licença
 
 Propriedade da **Atomize Edtech**.
 
 ---
 
-**Desenvolvido para demonstrar implementação real de RAG multi-agente com Claude Sonnet 3.5** 🚀
+**Sistema RAG completo com busca vetorial semântica e Claude Haiku 4.5** 🚀  
+**✅ 72 documentos ingidos | ✅ PostgreSQL + pgvector (Neon) | ✅ API pronta para integração**

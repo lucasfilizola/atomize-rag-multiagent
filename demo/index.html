@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - API RAG Atomize</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .agent-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .agent-button {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .agent-button:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .agent-button.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .agent-button h3 {
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .agent-button p {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 15px 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.agent {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .message.agent h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .sources {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .sources h5 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .source-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+        }
+
+        .source-item .relevance {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #718096;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Demo - API RAG Atomize</h1>
+            <p>Integração com agentes especializados</p>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Escolha seu assistente:</h2>
+            <div class="agent-selector">
+                <div class="agent-button active" data-agent="professor_pitagoras">
+                    <h3>🧮 Prof. Pitágoras</h3>
+                    <p>Matemática, SAEB e Olimpíadas</p>
+                </div>
+                <div class="agent-button" data-agent="dra_clarice_lispector">
+                    <h3>📚 Dra. Clarice</h3>
+                    <p>Português e Interpretação de Texto</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="chat-container" id="chatContainer">
+                <div class="message agent">
+                    <h4>👋 Bem-vindo!</h4>
+                    <p>Escolha um agente acima e faça sua pergunta.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Digite sua pergunta..."
+                    onkeypress="if(event.key === 'Enter') sendMessage()"
+                >
+                <button id="sendButton" onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAgent = 'professor_pitagoras';
+        const API_URL = 'http://localhost:3000/api/agents/query';
+
+        // Configurar seleção de agente
+        document.querySelectorAll('.agent-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.agent-button').forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                selectedAgent = button.dataset.agent;
+            });
+        });
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const button = document.getElementById('sendButton');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Desabilitar input
+            input.disabled = true;
+            button.disabled = true;
+            button.innerHTML = '<span class="loading"></span>';
+
+            // Adicionar mensagem do usuário
+            addMessage('user', message);
+            input.value = '';
+
+            try {
+                // Fazer requisição à API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        agentId: selectedAgent,
+                        message: message,
+                        maxDocuments: 5
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro na requisição');
+                }
+
+                // Adicionar resposta do agente
+                addMessage('agent', data.answer, data.sources, data.responseTimeMs, data.modelUsed);
+
+            } catch (error) {
+                addError(error.message);
+            } finally {
+                // Reabilitar input
+                input.disabled = false;
+                button.disabled = false;
+                button.textContent = 'Enviar';
+                input.focus();
+            }
+        }
+
+        function addMessage(type, content, sources = [], time = 0, model = '') {
+            const container = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            if (type === 'user') {
+                messageDiv.textContent = content;
+            } else {
+                let html = `<h4>💡 Resposta</h4><p>${content}</p>`;
+
+                if (sources && sources.length > 0) {
+                    html += `
+                        <div class="sources">
+                            <h5>📚 Fontes utilizadas (${sources.length}):</h5>
+                            ${sources.map(source => `
+                                <div class="source-item">
+                                    <span class="relevance">${(source.similarity * 100).toFixed(1)}%</span>
+                                    - ${source.metadata.source || 'Material Atomize'}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                if (time) {
+                    html += `
+                        <div class="stats">
+                            <div class="stat">⏱️ ${time}ms</div>
+                            <div class="stat">🤖 ${model}</div>
+                        </div>
+                    `;
+                }
+
+                messageDiv.innerHTML = html;
+            }
+
+            container.appendChild(messageDiv);
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        function addError(message) {
+            const container = document.getElementById('chatContainer');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `<strong>❌ Erro:</strong> ${message}`;
+            container.appendChild(errorDiv);
+            errorDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

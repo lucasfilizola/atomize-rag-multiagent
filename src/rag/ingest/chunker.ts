@@ -77,6 +77,7 @@ export function createDocumentChunks(
         agentId,
         content: chunk,
         metadata: {
+          source: doc.metadata.source || 'unknown',
           ...doc.metadata,
           chunkIndex: index,
           totalChunks: chunks.length,
